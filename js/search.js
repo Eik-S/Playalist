@@ -182,6 +182,8 @@ function createPlaylistTile( playlistIndex, songObject, played){
     input += "<div class=\"picto\"><img src=\"{2}\"></div>";
     input += "<div class=\"textArea\">{3}</div>";
     input += "<div class=\"duration\">{4}</div>";
+    input += "</div>";
+    input += "<div class=\"deleteTile\" onClick=deleteVideoFromList(\"{5}\",{6})>X";
     input += "</div></li>";
     var pictoSrc = getPlatformPicto( songObject.platform);
     var duration = getVideoDuration( songObject.duration);
@@ -191,7 +193,7 @@ function createPlaylistTile( playlistIndex, songObject, played){
         name = result;
     }
     console.log(name);
-    input = input.format( playlistIndex, played, pictoSrc, name ,duration);
+    input = input.format( playlistIndex, played, pictoSrc, name ,duration, playlistIndex, played);
     return input;
 }
 
