@@ -16,34 +16,42 @@ body {
     font-size: 1.5em;
     font-weight: 600;
     border-radius: 4px;
-    box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
 }
 
 #searchbar input[type=text]:focus {
     background-color: #fff;
     outline: none;
-    border: 3px solid #222;
-    -moz-box-shadow: 3px 3px 10px 4px #ddd;
-    -webkit-box-shadow: 3px 3px 10px 4px #ddd;
+    border: 2px solid #222;
     box-shadow: 3px 3px 10px 4px #ddd;
 }
 
+#resultWrapper {
+    text-align: center;
+}
+
 #resultSlider {
-    box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
+    display: inline-block;
+    width: 100%;
+    min-width: 320px;
+    white-space: nowrap;
+    overflow: scroll;
+    border-bottom: 2px solid #444;
+    border-top: 2px solid #444;
+    background-color: #ddd;
+    box-shadow: 3px 0px 10px 0px #ddd;
 }
 
 .resultTile {
     position: relative;
-    box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
     width: 320px;
     height: 180px;
+    margin: 5px 3px;
     background-color: #333;
+    display: inline-block;
+    white-space: normal;
+    word-wrap: normal;
+    box-shadow: 0px 0px 10px 0px #555;
+    overflow: hidden;
 }
 
 .resultTile img.background {
@@ -82,6 +90,7 @@ body {
     width: 45px;
     margin: 2.5px;
 }
+
 .metaArea .picto img {
     width: 45px;
     height: 45px;

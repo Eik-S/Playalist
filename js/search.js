@@ -22,6 +22,7 @@ function Song(platform, id, name, thumbnail, quality, duration) {
 
 $(function() {
     $("form").on("submit", function(e) {
+        $("form").blur();
         e.preventDefault();
         // prepare the request
         var searchQuery = encodeURIComponent($("#search").val()).replace(/%20/g, "+");
@@ -30,7 +31,7 @@ $(function() {
             part: "snippet",
             type: "video",
             q: searchQuery,
-            maxResults: 5,
+            maxResults: 10,
             order: "relevance"
         });
         //execute the request
@@ -109,32 +110,25 @@ function onClientLoad() {
 }
 
 function createBxSlider(){
-    $("#resultSlider").replaceWith("<div id=\"resultSlider\"><div>");
+    
     var resultSlider= "<div id=\"resultSlider\">{0}";
     for( var i = 0; i < search.length; i++){
         resultSlider = resultSlider.replace("{0}", getResultSlide( i, search[i])) + "{0}";
     }
     resultSlider = resultSlider.replace("{0}","</div>");
     $("#resultSlider").replaceWith(resultSlider);
-
-    $('#resultSlider').bxSlider({
-        slideWidth: 320,
-        minSlides: 1,
-        maxSlides: 4,
-        slideMargin: 10,
-        pager: false
-    });
+    $("#resultPlaceholder").replaceWith(resultSlider);
 }
 
 function getResultSlide( searchIndex, songObject){
-    var input = "<div class=\"slide\"><div class=\"resultTile\" onclick=processResultClick(\"{0}\")>";
+    var input = "<div class=\"resultTile\" onclick=processResultClick(\"{0}\")>";
     input += "<img class=\"background\" src=\"{1}\">";
     input += "<div class=\"textArea\">{2}</div>";
     input += "<div class=\"metaArea\">";
     input += "<div class=\"picto\"><img src=\"{3}\"></div>";
     input += "<div class=\"qualityBar\"><img src=\"{4}\"></div>";
     input += "<div class=\"duration\">{5}</div>";
-    input += "</div></div></div>";
+    input += "</div></div>";
     var pictoSrc = getPlatformPicto( songObject.platform);
     var qualitySrc = getQualitySrc( songObject.platform, songObject.quality);
     var duration = getVideoDuration( songObject.duration);
@@ -161,7 +155,19 @@ function getQualitySrc( platform, quality) {
 
 function getVideoDuration( duration) {
     var duration = duration.slice(2, duration.length - 1);
-    return duration.replace("H",":").replace("M",":").replace("S","");
+    if (duration.indexOf("M") - duration.indexOf("H") === 2 && duration.indexOf("H") >= 0){
+        duration = duration.replace("H", "H0");
+    } else if (duration.indexOf("M") === 1 && duration.indexOf("H") <= -1){
+        duration = "0" + duration;
+    }
+    if (duration.length - duration.indexOf("M") === 2 && duration.indexOf("M") >= 0){
+        duration = duration.replace("M","M0");
+    } else if (duration.indexOf("M")  <= 0 && duration.length === 2){
+        duration = "0M" + duration;
+    } else if (duration.indexOf("M")  <= 0 && duration.length === 1){
+        duration = "0M0" + duration;
+    }
+    return duration.replace("H",":").replace("M",":");
 }
 
 String.prototype.format = function() {
@@ -200,7 +206,7 @@ function loadYoutubePlayerApi(){
 var youtubePlayer;
 
 function processResultClick( searchIndex) {
-    $(".bx-wrapper").replaceWith("<div id=\"resultSlider\"></div>");
+    $("#resultSlider").replaceWith("<div id=\"resultPlaceholder\"></div>");
     if( playing){
         playlist.push(search[searchIndex]);
         updatePlaylist();
