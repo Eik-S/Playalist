@@ -7,9 +7,15 @@ var currentQuality;
 var currentDuration;
 
 var search = [];
-var playing = undefined;
+var playing;
 var playlist = [];
 var playedlist = [];
+
+var youtubePlayer1;
+var youtubePlayer2;
+
+var crossfade = 10.0;
+var fading = false;
 
 function Song(platform, id, name, thumbnail, quality, duration) {
     this.platform = platform;
@@ -18,6 +24,7 @@ function Song(platform, id, name, thumbnail, quality, duration) {
     this.thumbnail = thumbnail;
     this.quality = quality;
     this.duration = duration;
+    this.player;
 }
 
 $(function() {
@@ -52,12 +59,9 @@ $(function() {
                 videoRequest.execute(function(videoResponse) {
                     var videoResults = videoResponse.result;
                     songObject.quality = videoResults.items[0].contentDetails.definition;
-                    songObject.duration = videoResults.items[0].contentDetails.duration;
-                    console.log(songObject.name);
+                    songObject.duration = getVideoDurationSeconds(videoResults.items[0].contentDetails.duration);
                     search[index] = songObject;
                     i++;
-                    console.log("search.results.items.length: " + searchResults.items.length);
-                    console.log("search-length: " + i);
                     if(searchResults.items.length === i ){
                         createBxSlider();
                     }
@@ -68,7 +72,6 @@ $(function() {
 });
 
 function updatePlaylist() {
-    console.log("## Updating Playlist with length of: " + playlist.length);
     if( playlist.length === 0){
         $("#playlistWrapper").replaceWith("<div id=\"playlistWrapper\" class=\"playlist\"></div>");
     } else {
@@ -80,11 +83,13 @@ function updatePlaylist() {
         }
         input = input.replace("{0}", "");
         $("#playlistWrapper").replaceWith(input);
+        if( playlist.length > 0) {
+            loadNextVideo( playlist[0]);
+        }
     }
 }
 
 function updatePlayedlist() {
-    console.log("## Updating Playedlist with length of: " + playedlist.length);
     if( playedlist.length === 0){
         $("#playedlistWrapper").replaceWith("<div id=\"playedlistWrapper\" class=\"playlist\"></div>");
     } else {
@@ -131,7 +136,7 @@ function getResultSlide( searchIndex, songObject){
     input += "</div></div>";
     var pictoSrc = getPlatformPicto( songObject.platform);
     var qualitySrc = getQualitySrc( songObject.platform, songObject.quality);
-    var duration = getVideoDuration( songObject.duration);
+    var duration = formatVideoDuration( songObject.duration);
     currentThumbnail = encodeURI(currentThumbnail);
     input = input.format( searchIndex, songObject.thumbnail, songObject.name, pictoSrc, qualitySrc, duration);
     return input;
@@ -153,23 +158,58 @@ function getQualitySrc( platform, quality) {
     }
 }
 
-function getVideoDuration( duration) {
-    var duration = duration.slice(2, duration.length - 1);
-    if (duration.indexOf("M") - duration.indexOf("H") === 2 && duration.indexOf("H") >= 0){
-        duration = duration.replace("H", "H0");
-    } else if (duration.indexOf("M") === 1 && duration.indexOf("H") <= -1){
-        duration = "0" + duration;
+function getVideoDurationSeconds( duration) {
+    var seconds = 0;
+    if( duration.indexOf("S") >= 0) {
+        if(!isNaN( duration.charAt(duration.indexOf("S") - 2))) {
+            seconds += Number(duration.slice(duration.indexOf("S") - 2, duration.indexOf("S")));
+        } else {
+            seconds += Number(duration.slice(duration.indexOf("S") - 1, duration.indexOf("S")));
+        }
     }
-    if (duration.length - duration.indexOf("M") === 2 && duration.indexOf("M") >= 0){
-        duration = duration.replace("M","M0");
-    } else if (duration.indexOf("M")  <= 0 && duration.length === 2){
-        duration = "0M" + duration;
-    } else if (duration.indexOf("M")  <= 0 && duration.length === 1){
-        duration = "0M0" + duration;
+    if( duration.indexOf("M") >= 0) {
+        if(!isNaN( duration.charAt(duration.indexOf("M") - 2))) {
+            seconds += 60 * Number(duration.slice(duration.indexOf("M") - 2, duration.indexOf("M")));
+        } else {
+            seconds += 60 * Number(duration.slice(duration.indexOf("M") - 1, duration.indexOf("M")));
+        }
     }
-    return duration.replace("H",":").replace("M",":");
+    if( duration.indexOf("H") >= 0) {
+        if(!isNaN( duration.charAt(duration.indexOf("H") - 2))) {
+            seconds += 3600 * Number(duration.slice(duration.indexOf("H") - 2, duration.indexOf("H")));
+        } else {
+            seconds += 3600 * Number(duration.slice(duration.indexOf("H") - 1, duration.indexOf("H")));
+        }
+    }
+    return seconds;
 }
 
+function formatVideoDuration( duration) {
+    var rest = duration;
+    var seconds = 0;
+    var minutes = 0;
+    var hours;
+    if(duration >= 3600) {
+        hours = Math.floor( duration / 3600);
+        rest = duration % 3600;
+    }
+    if(duration >= 60) {
+        minutes = Math.floor(rest / 60);
+        rest = rest % 60;
+    }
+    if( duration > 0) {
+        seconds = rest;
+    }
+    if( hours === undefined) {
+        return twoDigitString(minutes) + ":" + twoDigitString(seconds);
+    } else {
+        return hours + ":" + twoDigitString(minutes) + ":" + twoDigitString(seconds);
+    }
+}
+
+function twoDigitString( number) {
+    return ("0" + number).slice(-2);
+}
 String.prototype.format = function() {
     var args = arguments;
     return this.replace(/{(\d+)}/g, function(match, number) { 
@@ -186,13 +226,12 @@ function createPlaylistTile( playlistIndex, songObject, played){
     input += "<div class=\"deleteTile\" onClick=deleteVideoFromList(\"{5}\",{6})>X";
     input += "</div></li>";
     var pictoSrc = getPlatformPicto( songObject.platform);
-    var duration = getVideoDuration( songObject.duration);
+    var duration = formatVideoDuration( songObject.duration);
     var name = songObject.name;
     if(name.indexOf("-") >= 0) {
         var result = name.slice(0, name.indexOf("-") + 1) + "<br>    " + name.slice(name.indexOf("-") + 2);
         name = result;
     }
-    console.log(name);
     input = input.format( playlistIndex, played, pictoSrc, name ,duration, playlistIndex, played);
     return input;
 }
@@ -205,34 +244,109 @@ function loadYoutubePlayerApi(){
     console.log("Youtube Player Api loaded.");
 }
 
-var youtubePlayer;
+var youtubePlayer1;
+var youtubePlayer2;
+
+function loadNextVideo( video) {
+    if( playing.player === 1) {
+        if( youtubePlayer2 === undefined){
+            cueYoutubeVideo( video.id, 2);
+        } else {
+            youtubePlayer2.cueVideoById( video.id);
+        }
+    } else if ( playing.player === 2) {
+        if( youtubePlayer1 === undefined){
+            cueYoutubeVideo( video.id, 1);
+        } else {
+            youtubePlayer1.cueVideoById( video.id);
+        }
+    } else if ( playing === undefined) {
+        if( youtubePlayer === undefined) {
+            playYoutubeVideo( video.id, 1)
+            switchToPlayer( 1); 
+        } else {
+            youtubePlayer1.loadVideoById( video.id);
+            switchToPlayer( 1);
+        }
+    }
+}
+
+function switchToPlayer( playerId) {
+    if( playerId === 1){
+        document.getElementById("player1").style.zIndex = "1";
+        document.getElementById("player2").style.zIndex = "0";
+    } else {
+        document.getElementById("player2").style.zIndex = "1";
+        document.getElementById("player1").style.zIndex = "0";
+    }
+}
 
 function processResultClick( searchIndex) {
     $("#resultSlider").replaceWith("<div id=\"resultPlaceholder\"></div>");
     if( playing){
+        if(playing.player === 1){
+            if(youtubePlayer1.getPlayerState() === 0) {
+                playedlist.push(playing);
+                youtubePlayer1.loadVideoById(search[searchIndex].id);
+                playing = search[searchIndex];
+                playing.player = 1;
+                search = [];
+            }
+        } else if(playing.player === 2){
+            if(youtubePlayer2.getPlayerState() === 0) {
+                playedlist.push(playing);
+                youtubePlayer2.loadVideoById(search[searchIndex].id);
+                playing = search[searchIndex];
+                playing.player = 2;
+                search = [];
+            }
+        }
+        updatePlayedlist();
         playlist.push(search[searchIndex]);
         updatePlaylist();
         search = [];
     } else {
-        playYoutubeVideo( search[searchIndex].id);
+        playYoutubeVideo( search[searchIndex].id, 1);
         playing = search[searchIndex];
+        playing.player = 1;
         search =[];
+        switchToPlayer( 1);
     }
 }
 
 function forcePlay( playlistIndex, played) {
-    if(played){
-        youtubePlayer.loadVideoById( playedlist[playlistIndex].id); 
-        playedlist.push( playing);
-        updatePlayedlist();
-        playing = playedlist[playlistIndex];
-        deleteVideoFromList( playlistIndex, played);
+    if( playing.player === 1) {
+        if(played){
+            youtubePlayer1.loadVideoById( playedlist[playlistIndex].id); 
+            playedlist.push( playing);
+            updatePlayedlist();
+            playing = playedlist[playlistIndex];
+            playing.player = 1;
+            deleteVideoFromList( playlistIndex, played);
+        } else {
+            youtubePlayer1.loadVideoById( playlist[playlistIndex].id);
+            playedlist.push( playing);
+            updatePlayedlist();
+            playing = playlist[playlistIndex];
+            playing.player = 1;
+            deleteVideoFromList( playlistIndex, played);
+        }
     } else {
-        youtubePlayer.loadVideoById( playlist[playlistIndex].id);
-        playedlist.push( playing);
-        updatePlayedlist();
-        playing = playlist[playlistIndex];
-        deleteVideoFromList( playlistIndex, played);
+        if(played){
+            youtubePlayer2.loadVideoById( playedlist[playlistIndex].id); 
+            playedlist.push( playing);
+            updatePlayedlist();
+            playing = playedlist[playlistIndex];
+            playing.player = 2;
+            deleteVideoFromList( playlistIndex, played);
+        } else {
+            youtubePlayer2.loadVideoById( playlist[playlistIndex].id);
+            playedlist.push( playing);
+            updatePlayedlist();
+            playing = playlist[playlistIndex];
+            playing.player = 2;
+            deleteVideoFromList( playlistIndex, played);
+        }
     }
 }
 
@@ -259,24 +373,79 @@ function deleteVideoFromList( index, played) {
     
 }
 
-function playYoutubeVideo( id) {
-    console.log("Youtube Api Ready.");
-    youtubePlayer = new YT.Player('player', {
-        height: '360',
-        width: '640',
-        playerVars: {
-            color: 'white',
-            iv_load_policy: '3',
-            playsinline: '1',
-            showinfo: '0'
-        },
-        videoId: id,
-        events: {
-            'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange
-        }
-    });
+function playYoutubeVideo( id, playerNumber) {
+    console.log("## Player" + playerNumber + ": ## Youtube Api Ready.");
+    if(playerNumber === 1){
+        youtubePlayer1 = new YT.Player( player1, {
+            height: '360',
+            width: '640',
+            playerVars: {
+                color: 'white',
+                iv_load_policy: '3',
+                playsinline: '1',
+                showinfo: '0'
+            },
+            videoId: id,
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+            }
+        });
+    } else {
+        youtubePlayer2 = new YT.Player( player2, {
+            height: '360',
+            width: '640',
+            playerVars: {
+                color: 'white',
+                iv_load_policy: '3',
+                playsinline: '1',
+                showinfo: '0'
+            },
+            videoId: id,
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+            }
+        });
+    }
+    $("#controlsWrapper").css("visibility","visible");
 }
+
+function cueYoutubeVideo( id, playerNumber) {
+    console.log("## Player" + playerNumber + ": ## Youtube Api Ready.");
+    if(playerNumber === 1){
+        youtubePlayer1 = new YT.Player( player1, {
+            height: '360',
+            width: '640',
+            playerVars: {
+                color: 'white',
+                iv_load_policy: '3',
+                playsinline: '1',
+                showinfo: '0'
+            },
+            videoId: id,
+            events: {
+                'onStateChange': onPlayerStateChange
+            }
+        });
+    } else {
+        youtubePlayer2 = new YT.Player( player2, {
+            height: '360',
+            width: '640',
+            playerVars: {
+                color: 'white',
+                iv_load_policy: '3',
+                playsinline: '1',
+                showinfo: '0'
+            },
+            videoId: id,
+            events: {
+                'onStateChange': onPlayerStateChange
+            }
+        });
+    }
+}
+
 // 4. The API will call this function when the video player is ready.
 function onPlayerReady(event) {
     event.target.playVideo();
@@ -286,15 +455,92 @@ function onPlayerReady(event) {
 //    The function indicates that when playing a video (state=1),
 //    the player should play for six seconds and then stop.
 function onPlayerStateChange(event) {
-    if (youtubePlayer.getPlayerState() === 0 && playlist.length > 0) {
-        playedlist.push(playing);
-        updatePlayedlist();
-        playing = playlist[0];
-        youtubePlayer.loadVideoById( playlist[0].id);
-        deleteVideoFromList( 0, false);
+    if (event.target.getPlayerState() === 0) {
+        if( playlist.length > 0) {
+            playedlist.push(playing);
+            updatePlayedlist();
+            if( playing.player === 1) {
+                switchToPlayer( 2);
+                youtubePlayer2.playVideo();
+                playing = playlist[0];
+                playing.player = 2;
+            } else {
+                switchToPlayer( 1);
+                youtubePlayer1.playVideo();
+                playing = playlist[0];
+                playing.player = 1;
+            }
+            deleteVideoFromList( 0, false);
+        }
     }
 }
-function stopVideo() {
-    youtubePlayer.stopVideo();
+
+function updateCrossfade( seconds) {
+    crossfade = Number(seconds) + (Number(seconds) * 0.1);
+    $("#crossfadeWrapper .crossfadeValue").val(String(seconds) + "s");
 }
 
+function fadeTo( playerNum) {
+    // Fading prevents the Crossfade Listener from being executed while fadeTo runs
+    fading = true;
+    if( playerNum === 1){
+        var stepTime = crossfade * 1000 / 10;
+        youtubePlayer1.setVolume(0);
+        youtubePlayer1.playVideo();
+        var i = 0;
+        var timerId = window.setInterval(function() {
+            i += 10;
+            youtubePlayer2.setVolume( (100 - i));
+            youtubePlayer1.setVolume( i);
+            if( i === 100){
+                youtubePlayer1.setVolume(100);
+                youtubePlayer2.setVolume(0);
+                endFadeTo( timerId);
+            }
+        }, stepTime);
+    } else {
+        var stepTime = crossfade * 1000 / 10;
+        youtubePlayer2.setVolume(0);
+        youtubePlayer2.playVideo();
+        var i = 0;
+        var timerId = window.setInterval(function() {
+            i += 10;
+            youtubePlayer1.setVolume( (100 - i));
+            youtubePlayer2.setVolume( i);
+            if( i === 100){
+                youtubePlayer1.setVolume(0);
+                youtubePlayer2.setVolume(100);
+                endFadeTo( timerId);
+            }
+        }, stepTime);
+    }
+}
+
+function endFadeTo( timerId){
+    fading = false;
+    window.clearInterval(timerId);
+}
+
+//Crossfade Listener
+window.setInterval(function() {
+    if(crossfade > 0 && !fading){
+        if(youtubePlayer1){
+            if( youtubePlayer1.getPlayerState() === 1){
+                var duration = playing.duration;
+                var playtime = youtubePlayer1.getCurrentTime();
+                if( playlist.length > 0 && (duration - playtime) <= crossfade && (duration - playtime) >= 1) {
+                    fadeTo( 2);
+                }
+            }
+        }
+        if( youtubePlayer2){
+            if( youtubePlayer2.getPlayerState() === 1){
+                var duration = playing.duration;
+                var playtime = youtubePlayer2.getCurrentTime();
+                if( playlist.length > 0 && (duration - playtime) <= crossfade && (duration - playtime) >= 1) {
+                    fadeTo( 1);
+                }
+            }
+        }
+    }
+}, 1000);
