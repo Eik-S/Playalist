@@ -8,6 +8,7 @@ var currentDuration;
 
 var search = [];
 var playing;
+var related;
 var playlist = [];
 var playedlist = [];
 
@@ -28,8 +29,8 @@ function Song(platform, id, name, thumbnail, quality, duration) {
 }
 
 $(function() {
-    $("form").on("submit", function(e) {
-        $("form").blur();
+    $("#searchForm").on("submit", function(e) {
+        $("#searchForm").blur();
         e.preventDefault();
         // prepare the request
         var searchQuery = encodeURIComponent($("#search").val()).replace(/%20/g, "+");
@@ -70,10 +71,49 @@ $(function() {
         });
     }); 
 });
+function onYouTubeIframeAPIReady() {
+    if (typeof(Storage) !== "undefined") {
+        if(localStorage.playing !== undefined){
+            try {
+                playing = JSON.parse(localStorage.playing);
+                console.log("Current Playing Id: " + playing.id);
+                playYoutubeVideo(playing.id, 1);
+                switchToPlayer(1);
+                playing.player = 1;
+            } catch(err) {
+                localStorage.removeItem("playing");
+                localStorage.removeItem("playlist");
+                localStorage.removeItem("playedlist");
+            }
+            updatePlaylist();
+        }
+        if(localStorage.playlist !== undefined){
+            try {
+                playlist = JSON.parse(localStorage.playlist);
+                updatePlaylist();
+            } catch(err) {
+                localStorage.removeItem("playlist");
+            }
+        }
+        if(localStorage.playedlist !== undefined){
+            try {
+                playedlist = JSON.parse(localStorage.playedlist);
+                updatePlayedlist();
+            } catch(err) {
+                localStorage.removeItem("playedlist");
+            }
+        }
+    }
+}
 
 function updatePlaylist() {
+    if(playing){
+        localStorage.playing = songToJson(playing);
+    }
     if( playlist.length === 0){
         $("#playlistWrapper").replaceWith("<div id=\"playlistWrapper\" class=\"playlist\"></div>");
+        localStorage.removeItem("playlist");
+        loadRelatedVideo(playing.id);
     } else {
         var input = "<div id=\"playlistWrapper\" class=\"playlist\">";
         input += "{0}";
@@ -83,15 +123,16 @@ function updatePlaylist() {
         }
         input = input.replace("{0}", "");
         $("#playlistWrapper").replaceWith(input);
-        if( playlist.length > 0) {
-            loadNextVideo( playlist[0]);
-        }
+        loadNextVideo( playlist[0]);
+        related = undefined;
+        localStorage.playlist = songArrayToJson(playlist);
     }
 }
 
 function updatePlayedlist() {
     if( playedlist.length === 0){
         $("#playedlistWrapper").replaceWith("<div id=\"playedlistWrapper\" class=\"playlist\"></div>");
+        localStorage.removeItem("playedlist");
     } else {
         var input = "<div id=\"playedlistWrapper\" class=\"playlist\">";
         input += "{0}";
@@ -101,7 +142,9 @@ function updatePlayedlist() {
         }
         input = input.replace("{0}", "");
         $("#playedlistWrapper").replaceWith(input);
+        localStorage.playedlist = songArrayToJson(playedlist);
     }
+    console.log("PlayedList length: " + playedlist.length);
 }
 
 // Called when Client API is loaded.
@@ -311,10 +354,12 @@ function processResultClick( searchIndex) {
         playing.player = 1;
         search =[];
         switchToPlayer( 1);
+        updatePlaylist();
     }
 }
 
 function forcePlay( playlistIndex, played) {
+    if(related) related = undefined;
     if( playing.player === 1) {
         if(played){
             youtubePlayer1.loadVideoById( playedlist[playlistIndex].id); 
@@ -347,6 +392,9 @@ function forcePlay( playlistIndex, played) {
             playing.player = 2;
             deleteVideoFromList( playlistIndex, played);
         }
+    }
+    if( playlist.length === 0 && related === undefined){
+        loadRelatedVideo( playing.id);
     }
 }
 
@@ -456,22 +504,34 @@ function onPlayerReady(event) {
 //    the player should play for six seconds and then stop.
 function onPlayerStateChange(event) {
     if (event.target.getPlayerState() === 0) {
-        if( playlist.length > 0) {
+        if( playlist.length > 0 || related) {
             playedlist.push(playing);
             updatePlayedlist();
             if( playing.player === 1) {
                 switchToPlayer( 2);
                 youtubePlayer2.playVideo();
-                playing = playlist[0];
+                if( related) {
+                    playing = related;
+                    related = undefined;
+                } else {
+                    playing = playlist[0];
+                    deleteVideoFromList(0, false);
+                }
                 playing.player = 2;
             } else {
                 switchToPlayer( 1);
                 youtubePlayer1.playVideo();
-                playing = playlist[0];
+                if( related) {
+                    playing = related;
+                    related = undefined;
+                } else {
+                    playing = playlist[0];
+                    deleteVideoFromList( 0, false);
+                }
                 playing.player = 1;
             }
-            deleteVideoFromList( 0, false);
         }
+        updatePlaylist();
     }
 }
 
@@ -528,7 +588,7 @@ window.setInterval(function() {
             if( youtubePlayer1.getPlayerState() === 1){
                 var duration = playing.duration;
                 var playtime = youtubePlayer1.getCurrentTime();
-                if( playlist.length > 0 && (duration - playtime) <= crossfade && (duration - playtime) >= 1) {
+                if( (playlist.length > 0 || related) && (duration - playtime) <= crossfade && (duration - playtime) >= 1) {
                     fadeTo( 2);
                 }
             }
@@ -537,10 +597,84 @@ window.setInterval(function() {
             if( youtubePlayer2.getPlayerState() === 1){
                 var duration = playing.duration;
                 var playtime = youtubePlayer2.getCurrentTime();
-                if( playlist.length > 0 && (duration - playtime) <= crossfade && (duration - playtime) >= 1) {
+                if( (playlist.length > 0 || related) && (duration - playtime) <= crossfade && (duration - playtime) >= 1) {
                     fadeTo( 1);
                 }
             }
         }
     }
 }, 1000);
+
+function switchLight( value) {
+    if(value === "Lights Off"){
+        $("#lightsButton").attr("value", "Lights On");
+        $("body").css("backgroundColor","#000");
+    } else {
+        $("#lightsButton").attr("value", "Lights Off");
+        $("body").css("background","#fff");
+    }
+}
+
+function loadRelatedVideo( videoId) {    
+    var searchRequest = gapi.client.youtube.search.list({
+        part: "snippet",
+        type: "video",
+        maxResults: 1,
+        relatedToVideoId: videoId
+    });
+    //execute the request
+    searchRequest.execute(function(searchResponse) {
+        var searchResults = searchResponse.result;
+        var item = searchResults.items[0];
+        var songObject = new Song;
+        songObject.id = item.id.videoId;
+        songObject.platform = "youtube";
+        songObject.name = item.snippet.title;
+        songObject.thumbnail = item.snippet.thumbnails.high.url;
+        var videoRequest = gapi.client.youtube.videos.list({
+            part: "contentDetails",
+            id: songObject.id
+        });
+
+        videoRequest.execute(function(videoResponse) {
+            var videoResults = videoResponse.result;
+            songObject.quality = videoResults.items[0].contentDetails.definition;
+            songObject.duration = getVideoDurationSeconds(videoResults.items[0].contentDetails.duration);
+            related = songObject;
+            loadNextVideo(related);
+            console.log("Next Video: " + songObject.name);
+        });
+    });
+}
+
+function songToJson( song) {
+    var returnString = "{";
+    returnString += "\"platform\":\"" + song.platform + "\", ";
+    returnString += "\"id\":\"" + song.id + "\", ";
+    returnString += "\"name\":\"" + song.name + "\",";
+    returnString += "\"thumbnail\":\"" + song.thumbnail + "\",";
+    returnString += "\"quality\":\"" + song.quality + "\",";
+    returnString += "\"duration\":\"" + song.duration + "\",";
+    returnString += "\"player\":\"" + song.player + "\"";
+    returnString += "}";
+    return returnString;
+}
+
+function songArrayToJson( songs){
+    var returnString = "[";
+    for(var i = 0; i < songs.length; i++){
+        returnString += "{";
+        returnString += "\"platform\":\"" + songs[i].platform + "\", ";
+        returnString += "\"id\":\"" + songs[i].id + "\", ";
+        returnString += "\"name\":\"" + songs[i].name + "\",";
+        returnString += "\"thumbnail\":\"" + songs[i].thumbnail + "\",";
+        returnString += "\"quality\":\"" + songs[i].quality + "\",";
+        returnString += "\"duration\":\"" + songs[i].duration + "\",";
+        returnString += "\"player\":\"" + songs[i].player + "\"";
+        returnString += "},";
+    }
+    returnString = returnString.slice(0,returnString.length - 1);
+    returnString += "]";
+    return returnString;
+}
+

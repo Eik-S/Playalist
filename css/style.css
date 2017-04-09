@@ -2,7 +2,30 @@ body {
     background-color: #fff;
     font-family: "Open Sans";
 }
-#searchbar{
+
+#upperControlsWrapper {
+    margin-top: 20px;
+    margin-left: 10px;
+    position: absolute;
+    display: block;
+}
+
+#donateButton {
+    position: relative;
+    display: block;
+    float:left;
+}
+
+#lightsButton {
+    position: relative;
+    display: block;
+    margin-left: 10px;
+    float: left;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+#searchbar {
     margin: 20px;
     text-align: center;	
 }
@@ -155,7 +178,7 @@ body {
     visibility: hidden;
     position: absolute;
     float: none;
-    margin-top: 30px;
+    margin-top: 20px;
     margin-left: auto;
     margin-right: auto;
     left: 0;
@@ -166,14 +189,31 @@ body {
 
 #controlsWrapper input.crossfadeValue {
     position: relative;
-    width: 100%;
+    width: 25px;
+    margin-left: auto;
+    margin-right: auto;
     text-align: center;
     border: none;
+    background-color: #ccc;
+    border-radius: 3px;
     font-weight: bold;
     font-size: 12px;
 }
 
-#controlsWrapper [type=range] {
+#controlsWrapper input[type=range] {
+    width: 100%;
+}
+
+#controlsWrapper label {
+    position: relative;
+    display: block;
+    text-align: center;
+    width: 75px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #ccc;
+    border-radius: 4px;
+    font-size: 14px;
     font-weight: bold;
 }
 
