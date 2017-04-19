@@ -615,13 +615,14 @@ function switchLight( value) {
     }
 }
 
-function loadRelatedVideo( videoId) {    
+function loadRelatedVideo( videoId) {
     var searchRequest = gapi.client.youtube.search.list({
         part: "snippet",
         type: "video",
         maxResults: 1,
         relatedToVideoId: videoId
     });
+
     //execute the request
     searchRequest.execute(function(searchResponse) {
         var searchResults = searchResponse.result;
@@ -678,3 +679,14 @@ function songArrayToJson( songs){
     return returnString;
 }
 
+//Mouse Wheel Support for resultSlider
+$(function() {
+       $("#resultSlider").mousewheel(function(event, delta) {
+
+                 this.scrollLeft -= (delta * 30);
+               
+                 event.preventDefault();
+
+              });
+
+});
