@@ -58,18 +58,22 @@ body {
     width: 100%;
     min-width: 320px;
     white-space: nowrap;
-    overflow: scroll;
+    margin-bottom: 10px;
+    overflow-x: scroll;
     border-bottom: 2px solid #444;
     border-top: 2px solid #444;
     background-color: #ddd;
     box-shadow: 3px 0px 10px 0px #ddd;
 }
 
+#resultSlider::-webkit-scrollbar {
+	display: none;
+}
 .resultTile {
     position: relative;
     width: 320px;
     height: 180px;
-    margin: 5px 3px;
+    margin: 5px 3px 3px 3px;
     background-color: #333;
     display: inline-block;
     white-space: normal;

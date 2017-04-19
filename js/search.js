@@ -166,6 +166,7 @@ function createBxSlider(){
     resultSlider = resultSlider.replace("{0}","</div>");
     $("#resultSlider").replaceWith(resultSlider);
     $("#resultPlaceholder").replaceWith(resultSlider);
+    setMousewheel();
 }
 
 function getResultSlide( searchIndex, songObject){
@@ -680,13 +681,9 @@ function songArrayToJson( songs){
 }
 
 //Mouse Wheel Support for resultSlider
-$(function() {
-       $("#resultSlider").mousewheel(function(event, delta) {
-
-                 this.scrollLeft -= (delta * 30);
-               
-                 event.preventDefault();
-
-              });
-
-});
+function setMousewheel() {
+    $("#resultSlider").mousewheel(function(event, delta) {
+         this.scrollLeft -= (delta * 10);
+         event.preventDefault();
+    });
+}
