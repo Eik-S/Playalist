@@ -38,6 +38,7 @@ $(function() {
         var searchRequest = gapi.client.youtube.search.list({
             part: "snippet",
             type: "video",
+            safeSearch: "strict",
             q: searchQuery,
             maxResults: 10,
             order: "relevance"
@@ -620,32 +621,45 @@ function loadRelatedVideo( videoId) {
     var searchRequest = gapi.client.youtube.search.list({
         part: "snippet",
         type: "video",
-        maxResults: 1,
+        safeSearch: "strict",
+        maxResults: 10,
         relatedToVideoId: videoId
     });
 
     //execute the request
     searchRequest.execute(function(searchResponse) {
         var searchResults = searchResponse.result;
-        var item = searchResults.items[0];
-        var songObject = new Song;
-        songObject.id = item.id.videoId;
-        songObject.platform = "youtube";
-        songObject.name = item.snippet.title;
-        songObject.thumbnail = item.snippet.thumbnails.high.url;
-        var videoRequest = gapi.client.youtube.videos.list({
-            part: "contentDetails",
-            id: songObject.id
-        });
+        console.log(searchResults.items.length + " Related Songs found.");
+        songIteration:
+        for( var x = 0; x < searchResults.items.length; x++) {
+            var item = searchResults.items[x];
+            var currentId = item.id.videoId;
+            for( var i = 0; i < playedlist.length; i++){
+                if( currentId === playedlist[i].id) {
+                    console.log("This song is already in the Playedlist: " + item.snippet.title);
+                    continue songIteration;
+                }
+            }
+            var songObject = new Song;
+            songObject.id = item.id.videoId;
+            songObject.platform = "youtube";
+            songObject.name = item.snippet.title;
+            songObject.thumbnail = item.snippet.thumbnails.high.url;
+            var videoRequest = gapi.client.youtube.videos.list({
+                part: "contentDetails",
+                id: songObject.id
+            });
 
-        videoRequest.execute(function(videoResponse) {
-            var videoResults = videoResponse.result;
-            songObject.quality = videoResults.items[0].contentDetails.definition;
-            songObject.duration = getVideoDurationSeconds(videoResults.items[0].contentDetails.duration);
-            related = songObject;
-            loadNextVideo(related);
-            console.log("Next Video: " + songObject.name);
-        });
+            videoRequest.execute(function(videoResponse) {
+                var videoResults = videoResponse.result;
+                songObject.quality = videoResults.items[0].contentDetails.definition;
+                songObject.duration = getVideoDurationSeconds(videoResults.items[0].contentDetails.duration);
+                related = songObject;
+                loadNextVideo(related);
+                console.log("Next Video: " + songObject.name);
+            });
+            break;
+        }
     });
 }
 
