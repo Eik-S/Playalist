@@ -631,7 +631,8 @@ function loadRelatedVideo( videoId) {
         var searchResults = searchResponse.result;
         console.log(searchResults.items.length + " Related Songs found.");
         songIteration:
-        for( var x = 0; x < searchResults.items.length; x++) {
+        while( true) {
+            var x = Math.floor(Math.random() * 10);
             var item = searchResults.items[x];
             var currentId = item.id.videoId;
             for( var i = 0; i < playedlist.length; i++){
