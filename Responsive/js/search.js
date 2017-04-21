@@ -38,7 +38,7 @@ $(function() {
         var searchRequest = gapi.client.youtube.search.list({
             part: "snippet",
             type: "video",
-            safeSearch: "none",
+            safeSearch: "strict",
             q: searchQuery,
             maxResults: 10,
             order: "relevance"
@@ -621,7 +621,7 @@ function loadRelatedVideo( videoId) {
     var searchRequest = gapi.client.youtube.search.list({
         part: "snippet",
         type: "video",
-        safeSearch: "none",
+        safeSearch: "strict",
         maxResults: 10,
         relatedToVideoId: videoId
     });
