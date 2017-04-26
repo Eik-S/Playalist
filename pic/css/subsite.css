@@ -1,0 +1,45 @@
+.goBack {
+    font-size: 25px;
+    font-weight: 400;
+}
+
+h2{
+    color: #555;
+    font-weight: 300;
+    font-size: 20px;
+}
+
+li{
+    color: #777;
+    font-weight: 200;
+    font-size: 15px;
+    text-decoration: none;
+    list-style-type: none;
+    margin: 0px 0px 0px 10px;
+}
+
+a {  
+    text-decoration: none;
+    font-weight: bold;
+    color: #777;
+    border-bottom: 1px solid #777;
+}
+
+a:hover {
+    color: #555;
+    border-bottom: 1px solid #555;
+}
+
+.links li{
+    font-weight: bold;
+    font-size: 17px;
+    margin-top: 5px;
+}
+
+.legalInformation {
+    margin-left: 20px;
+}
+
+.links {
+    margin-left: 20px;
+}

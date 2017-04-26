@@ -189,7 +189,8 @@ body {
 #mainFrame {
     position: relative;
     width: 100%;
-    min-height: 100vh;
+    height: 100vh;
+    min-height: 700px;
 }
 
 #listControlWrapper {
@@ -201,7 +202,7 @@ body {
 #controlsWrapper {
     display: inline-block;
     position: relative;
-    width: 100%;
+    width: 410px;
     margin-left: auto;
     margin-right: auto;
     text-align: center;
@@ -209,11 +210,10 @@ body {
 }
 
 #controls {
-    width: 410px;
+    width: 100%;
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
     padding: 2px;
-    margin: auto;
     background-color: #000;
     color: #fff;
 }
@@ -276,10 +276,8 @@ input[type=button]:active {
 }
 
 #listWrapper {
-    display: inline-block;
-    position: relative;
+    display: block;
     float: none;
-    margin: auto;
 }
 
 #playlistWrapper {
@@ -288,7 +286,8 @@ input[type=button]:active {
     position: relative;
     width: 430px;
     padding: 10px;
-    margin: auto;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #playedlistWrapper {
@@ -297,7 +296,8 @@ input[type=button]:active {
     position: relative;
     width: 430px;
     padding: 10px;
-    margin: auto;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 label.headerLabel {

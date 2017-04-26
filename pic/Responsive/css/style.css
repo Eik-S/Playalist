@@ -1,59 +1,32 @@
-*,*:before, *:after {
+*, *:before, *:after {
     box-sizing: border-box;
 }
 
 body {
-    background-color: #000;
-    font-family: 'Roboto', sans-serif;
-    padding: 0px;
-    margin: 0px;
-    border: none;
-    text-align: center;
-}
-
-#description {
-    transition: max-height 1s ease-in, max-width 1s ease-in 0.5s, background-color 1s linear 1s;
-    display: block;
-    position: absolute;
-    z-index: 2;
     background-color: #fff;
-    max-height: 56px;
-    max-width: 56px;
-    overflow: hidden;
-}
-
-#description:hover {
-    transition: background-color 1s, max-width 1s ease-out, max-height 1s ease-out 0.5s;
-    max-height: 1000px;
-    max-width: 1000px;
-    background-color: #F5E753;
-}
-
-#description h2 {
-    margin: 10px 20px 0px 20px;
-    padding: 0px;
-    font-weight: 700px;
-    font-size: 20px;
-}
-
-#description li {
-    display: block;
-    margin: 3px 20px 10px 20px;
-    text-align: center;
-    font-weight: 600px;
-    font-size: 16px;
-}
-
-#description img {
-    background-color: transparent;
-    margin: 3px;
+    font-family: "Open Sans";
 }
 
 #upperControlsWrapper {
-    margin-top: 10px;
-    margin-left: 60px;
+    margin-top: 20px;
+    margin-left: 10px;
     position: absolute;
     display: block;
+}
+
+#donateButton {
+    position: relative;
+    display: block;
+    float:left;
+}
+
+#lightsButton {
+    position: relative;
+    display: block;
+    margin-left: 10px;
+    float: left;
+    font-weight: bold;
+    font-size: 16px;
 }
 
 #searchbar {
@@ -65,8 +38,8 @@ body {
     width: 50%;
     max-width: 800px;
     padding: 10px 15px;
-    background-color: #555;
-    border: none;
+    border: 2px solid #666;
+    background-color: #ddd;
     color: #000;
     font-size: 1.5em;
     font-weight: 600;
@@ -74,8 +47,10 @@ body {
 }
 
 #searchbar input[type=text]:focus {
-    background-color: #aaa;
+    background-color: #fff;
     outline: none;
+    border: 2px solid #222;
+    box-shadow: 3px 3px 10px 4px #ddd;
 }
 
 #resultWrapper {
@@ -89,7 +64,10 @@ body {
     white-space: nowrap;
     margin-bottom: 10px;
     overflow-x: scroll;
-    background-color: #444;
+    border-bottom: 2px solid #444;
+    border-top: 2px solid #444;
+    background-color: #ddd;
+    box-shadow: 3px 0px 10px 0px #ddd;
 }
 
 #resultSlider::-webkit-scrollbar {
@@ -123,6 +101,7 @@ body {
     width: 310px;
     height: 120px;
     margin: 5px;
+    font-family: "Open Sans";
     font-size: 18px;
     font-weight: 600;
     color: #fff;
@@ -170,12 +149,8 @@ body {
 
 #playerWrapper {
     position: relative;
-    width: 640px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-bottom: 10px;
+    width: 100%;
     height: 360px;
-    background-color: #000;
 }
 
 #playerWrapper iframe {
@@ -188,135 +163,77 @@ body {
 
 #mainFrame {
     position: relative;
-    width: 100%;
-    min-height: 100vh;
+    min-width: 1000px;
+    width: auto;
+    min-height: 600px;
+    height: 100vh;
 }
 
 #listControlWrapper {
     width: 100%;
-    text-align: center;
-    position: relative;
-}
-
-#controlsWrapper {
-    display: inline-block;
-    position: relative;
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-    min-width: 300px;
-}
-
-#controls {
-    width: 410px;
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
-    padding: 2px;
-    margin: auto;
-    background-color: #000;
-    color: #fff;
-}
-
-#controlsWrapper input.crossfadeValue {
-    display: inline-block;
-    width: 30px;
-    position: relative;
-    border: none;
-    color: #fff;
-    background-color: transparent;
-    font-weight: 600;
-    font-size: 15px;
-}
-
-#controlsWrapper input[type=range] {
-    border-radius: 5px;
-    -webkit-appearance: none;
-    width: 80%;
-    background-color: #bbb;
-}
-
-label {
-    position: relative;
-    color: #fff;
-    display: inline-block;
-    font-size: 16px;
-    font-weight: 600;
-}
-
-#buttonWrapper {
-    position: relative;
-    text-align: center;
-}
-
-input[type=button] {
-    -webkit-appearance: button;
-    position: relative;
-    display: inline-block;
-    background-color: #000;
-    margin: 10px;
-    font-weight: 700;
-    font-size: 20px;
-    color: #fff;
-    border-radius: 1px;
-    height: 50px;
-    border: 3px solid #fff;
-    padding: 3px 6px;
-}
-
-input[type=button]:hover {
-    border-color: #000;
-    color: #000;
-    background-color: #fff;
-}
-
-input[type=button]:active {
-    border-color: #555;
-    color: #555;
-}
-
-#listWrapper {
-    display: inline-block;
-    position: relative;
-    float: none;
-    margin: auto;
 }
 
 #playlistWrapper {
+    margin-top: 30px;
     cursor: default;
-    display: inline-block;
     position: relative;
-    width: 430px;
-    padding: 10px;
-    margin: auto;
+    width: 400px;
+    float: left;
+}
+
+#controlsWrapper {
+    display: block;
+    visibility: hidden;
+    position: absolute;
+    float: none;
+    margin-top: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
+    text-align: center;
+    width: 200px;
+}
+
+#controlsWrapper input.crossfadeValue {
+    position: relative;
+    width: 25px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    border: none;
+    background-color: #ccc;
+    border-radius: 3px;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+#controlsWrapper input[type=range] {
+    width: 100%;
+}
+
+#controlsWrapper label {
+    position: relative;
+    display: block;
+    text-align: center;
+    width: 75px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
 }
 
 #playedlistWrapper {
+    margin-top: 30px;
     cursor: default;
-    display: inline-block;
     position: relative;
-    width: 430px;
-    padding: 10px;
-    margin: auto;
+    width: 400px;
+    float: right;
 }
 
-label.headerLabel {
-    color: #aaa;
-    display: block;
-    width: 100%;
-    position: relative;
-    font-size: 30px;
-    background-color: transparent;
-    margin: 10px 0px;
-}
-
-.playlist {
-    height: 100%;
-    padding: 5px;
-}
-
-.playlist li {
-    text-align: left; 
+.playlist li {    
     position: relative;
     display: block;
     float: left;
@@ -328,25 +245,25 @@ label.headerLabel {
 .playlist .playlistTile {
     position: relative;
     float: left;
-    width: 377px;
+    width: 360px;
     height: 40px;
-    background-color: #E3BFA8;
-    color: #222;
+    background-color: #ccc;
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
-    margin: 1px 0px;
+    border: 1px solid transparent;
 }
 
 .playlist .playlistTile:hover {
     background-color: #ddd;
+    border: 1px solid #eee;
 }
 
 .playlist .deleteTile {
     position: relative;
     float: left;
     width: 23px;
-    height: 40px;
-    margin: 1px 0px;
+    height: 24px;
+    border: 1px solid #444;
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
     background-color: #444;
@@ -354,10 +271,11 @@ label.headerLabel {
     font-weight: 600;
     font-size: 22;
     text-align: center;
-    padding: 10px 0px;
+    padding: 8px 0px;
 }
 
 .playlist .deleteTile:hover {
+    border-color: #ccc;
     background-color: #000;
     color: #eee;
 }
@@ -385,6 +303,7 @@ label.headerLabel {
     padding: 2px 4px 2px 8px;
     text-indent: -8px;
     overflow: hidden;
+    font-family: "Open Sans";
     font-size: 12px;   
     font-weight: 600;
     color: #000;

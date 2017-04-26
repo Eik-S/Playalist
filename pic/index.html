@@ -45,25 +45,24 @@
                 <div id="player1"></div> 
                 <div id="player2"></div> 
         </div>
-        <div id="controlsWrapper">
-            <div id="controls">
-                <div id="crossfadeWrapper">
-                    <div id="crossfadeValue">
-                        <label>crossfade</label>
-                        <input type="text" class="crossfadeValue" maxLength="3" readonly value="10s"></input>
-                    </div>
-                    <input type="range" value="10" min="0" max="15" step="1" onChange="updateCrossfade(this.value);"></input>
-                </div>
-                <div id="buttonWrapper">
-                    <input id="switchFancyButton" type="Button" value="changeBackground" onClick="fancyBgChangeColors();"></input>
-                    <input id="resetButton" type="button" value="resetApp" onClick="deleteLocalStorage()"></input>
-                </div>
-            </div>
-        </div>
-        <div id="listWrapper">
+        <div id="listControlWrapper">
             <div id="playlistWrapper">
                 <label class="headerLabel">playlist</label>
                 <div id="playlist" class="playlist"></div>
+            </div>
+            <div id="controlsWrapper">
+                <label class="headerLabel">settings</label>
+                <div id="controls">
+                    <div id="crossfadeWrapper">
+                        <label>crossfade</label>
+                        <input type="text" class="crossfadeValue" maxLength="3" readonly value="10s"></input>
+                        <input type="range" value="10" min="0" max="15" step="1" onChange="updateCrossfade(this.value);"></input>
+                    </div>
+                    <div id="buttonWrapper">
+                        <input id="switchFancyButton" type="Button" value="changeBackground" onClick="fancyBgChangeColors();"></input>
+                        <input id="resetButton" type="button" value="resetApp" onClick="deleteLocalStorage()"></input>
+                    </div>
+                </div>
             </div>
             <div id="playedlistWrapper">
                 <label class="headerLabel">lastSongs</label>
