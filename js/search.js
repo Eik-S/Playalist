@@ -11,12 +11,15 @@ var playing;
 var related;
 var playlist = [];
 var playedlist = [];
+var draggData;
 
 var youtubePlayer1;
 var youtubePlayer2;
 
 var crossfade = 10.0;
 var fading = false;
+
+setFancyBg( 200, 0.3);
 
 function Song(platform, id, name, thumbnail, quality, duration) {
     this.platform = platform;
@@ -33,7 +36,7 @@ $(function() {
         $("#searchForm").blur();
         e.preventDefault();
         // prepare the request
-        var searchQuery = encodeURIComponent($("#search").val()).replace(/%20/g, "+");
+        var searchQuery = encodeURIComponent($("#search").val().trim()).replace(/%20/g, "+");
         searchQuery = searchQuery.replace("%C3%A4","ae").replace("%C3%BC", "ue").replace("%C3%B6","oe");
         var searchRequest = gapi.client.youtube.search.list({
             part: "snippet",
@@ -72,12 +75,12 @@ $(function() {
         });
     }); 
 });
+
 function onYouTubeIframeAPIReady() {
     if (typeof(Storage) !== "undefined") {
         if(localStorage.playing !== undefined){
             try {
                 playing = JSON.parse(localStorage.playing);
-                console.log("Current Playing Id: " + playing.id);
                 playYoutubeVideo(playing.id, 1);
                 switchToPlayer(1);
                 playing.player = 1;
@@ -86,7 +89,6 @@ function onYouTubeIframeAPIReady() {
                 localStorage.removeItem("playlist");
                 localStorage.removeItem("playedlist");
             }
-            updatePlaylist();
         }
         if(localStorage.playlist !== undefined){
             try {
@@ -107,45 +109,53 @@ function onYouTubeIframeAPIReady() {
     }
 }
 
+function deleteLocalStorage() {
+    localStorage.removeItem("playing");
+    localStorage.removeItem("playlist");
+    localStorage.removeItem("playedlist");
+    window.location.reload();
+}
+
 function updatePlaylist() {
     if(playing){
         localStorage.playing = songToJson(playing);
     }
     if( playlist.length === 0){
-        $("#playlistWrapper").replaceWith("<div id=\"playlistWrapper\" class=\"playlist\"></div>");
+        $("#playlist").replaceWith("<div id=\"playlist\" class=\"playlist\"></div>");
         localStorage.removeItem("playlist");
         loadRelatedVideo(playing.id);
     } else {
-        var input = "<div id=\"playlistWrapper\" class=\"playlist\">";
+        var input = "<div id=\"playlist\" class=\"playlist\">";
         input += "{0}";
         input += "</div>";
         for( var i = 0; i < playlist.length; i++) {
             input = input.replace("{0}", createPlaylistTile( i, playlist[i], false) + "{0}");
         }
         input = input.replace("{0}", "");
-        $("#playlistWrapper").replaceWith(input);
+        $("#playlist").replaceWith(input);
         loadNextVideo( playlist[0]);
         related = undefined;
         localStorage.playlist = songArrayToJson(playlist);
     }
+    console.log("Playlist length: " + playlist.length);
 }
 
 function updatePlayedlist() {
     if( playedlist.length === 0){
-        $("#playedlistWrapper").replaceWith("<div id=\"playedlistWrapper\" class=\"playlist\"></div>");
+        $("#playedlist").replaceWith("<div id=\"playedlist\" class=\"playlist\"></div>");
         localStorage.removeItem("playedlist");
     } else {
-        var input = "<div id=\"playedlistWrapper\" class=\"playlist\">";
+        var input = "<div id=\"playedlist\" class=\"playlist\">";
         input += "{0}";
         input += "</div>";
         for( var i = playedlist.length - 1; i >= 0; i--) {
             input = input.replace("{0}", createPlaylistTile( i, playedlist[i], true) + "{0}");
         }
         input = input.replace("{0}", "");
-        $("#playedlistWrapper").replaceWith(input);
+        $("#playedlist").replaceWith(input);
         localStorage.playedlist = songArrayToJson(playedlist);
     }
-    console.log("PlayedList length: " + playedlist.length);
+    console.log("Playedlist length: " + playedlist.length);
 }
 
 // Called when Client API is loaded.
@@ -273,13 +283,65 @@ function createPlaylistTile( playlistIndex, songObject, played){
     var pictoSrc = getPlatformPicto( songObject.platform);
     var duration = formatVideoDuration( songObject.duration);
     var name = songObject.name;
-    if(name.indexOf("-") >= 0) {
-        var result = name.slice(0, name.indexOf("-") + 1) + "<br>    " + name.slice(name.indexOf("-") + 2);
+    if(name.indexOf(" - ") >= 0) {
+        var result = name.slice(0, name.indexOf(" - ") + 1) + "<br>    " + name.slice(name.indexOf(" - ") + 2);
         name = result;
     }
     input = input.format( playlistIndex, played, pictoSrc, name ,duration, playlistIndex, played);
     return input;
 }
+
+//---------------------------------------------------------------------
+// Drag and Drop functionality
+//---------------------------------------------------------------------
+//document.addEventListener("dragstart", function(event) {
+//    draggData = event.target.parentElement;
+//    draggData.firstChild.style.backgroundColor = "#ddd";
+//
+//    draggData.index = $(event.target.parentElement).index();
+//    if( event.target.parentElement.parentElement.id === "playlist") {
+//        draggData.played = false;
+//        draggData.song = playlist[draggData.index];
+//    } else {
+//        draggData.played = true;
+//        draggData.song = playedlist[draggData.index];
+//    }
+//});
+//
+//document.addEventListener("dragover", function(event) {
+//    if ( event.target.className == "playlistTile" ) {
+//        if( event.target.parentElement !== draggData) {
+//            event.target.parentElement.parentElement.insertBefore(draggData, event.target.parentElement); 
+//        }
+//    }
+//    draggData.dropIndex = $(event.target.parentElement).index();
+//    console.log("event.target.parentElement....id: " + event.target.parentElement.parentElement.id);
+//    if( event.target.parentElement.parentElement.id === "playlist") {
+//        draggData.dropPlayed = false;
+//    } else {
+//        draggData.dropPlayed = true;
+//    }
+//});
+//
+//document.addEventListener("dragend", function(event) {
+//    console.log("draggData.dropPlayed = " + draggData.dropPlayed);
+//    if(draggData) {
+//        deleteVideoFromList(draggData.index, draggData.played);
+//        draggData.firstChild.style.backgroundColor = "#E3BFA8";
+//        if(draggData.dropPlayed === false) {
+//            console.log("draggData.dropIndex = " + draggData.dropIndex);
+//            playlist.splice( draggData.dropIndex, 0, draggData.song);
+//            console.log(playlist);
+//        } else {
+//            playedlist.splice( draggData.dropIndex, 0, draggData.song);
+//            console.log(playedlist);
+//        }
+//        updatePlaylist();
+//        updatePlayedlist();
+//    }
+//});
+//---------------------------------------------------------------------
+
 
 function loadYoutubePlayerApi(){
     var tag = document.createElement('script');
@@ -394,9 +456,6 @@ function forcePlay( playlistIndex, played) {
             playing.player = 2;
             deleteVideoFromList( playlistIndex, played);
         }
-    }
-    if( playlist.length === 0 && related === undefined){
-        loadRelatedVideo( playing.id);
     }
 }
 
@@ -533,7 +592,6 @@ function onPlayerStateChange(event) {
                 playing.player = 1;
             }
         }
-        updatePlaylist();
     }
 }
 
@@ -607,16 +665,6 @@ window.setInterval(function() {
     }
 }, 1000);
 
-function switchLight( value) {
-    if(value === "Lights Off"){
-        $("#lightsButton").attr("value", "Lights On");
-        $("body").css("backgroundColor","#000");
-    } else {
-        $("#lightsButton").attr("value", "Lights Off");
-        $("body").css("background","#fff");
-    }
-}
-
 function loadRelatedVideo( videoId) {
     var searchRequest = gapi.client.youtube.search.list({
         part: "snippet",
@@ -629,7 +677,6 @@ function loadRelatedVideo( videoId) {
     //execute the request
     searchRequest.execute(function(searchResponse) {
         var searchResults = searchResponse.result;
-        console.log(searchResults.items.length + " Related Songs found.");
         songIteration:
         while( true) {
             var x = Math.floor(Math.random() * 10);
@@ -656,8 +703,8 @@ function loadRelatedVideo( videoId) {
                 songObject.quality = videoResults.items[0].contentDetails.definition;
                 songObject.duration = getVideoDurationSeconds(videoResults.items[0].contentDetails.duration);
                 related = songObject;
-                loadNextVideo(related);
-                console.log("Next Video: " + songObject.name);
+                playlist.push(related);
+                updatePlaylist();
             });
             break;
         }
@@ -698,7 +745,7 @@ function songArrayToJson( songs){
 //Mouse Wheel Support for resultSlider
 function setMousewheel() {
     $("#resultSlider").mousewheel(function(event, delta) {
-         this.scrollLeft -= (delta * 10);
+         this.scrollLeft -= (delta * 30);
          event.preventDefault();
     });
 }
