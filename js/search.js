@@ -1,4 +1,4 @@
-'use strict';
+'use strict';https://gist.github.com/simonista/8703722
 var currentVideoId;
 var currentPlatform;
 var currentThumbnail;
@@ -8,7 +8,6 @@ var currentDuration;
 
 var search = [];
 var playing;
-var related;
 var playlist = [];
 var playedlist = [];
 var draggData;
@@ -134,7 +133,6 @@ function updatePlaylist() {
         input = input.replace("{0}", "");
         $("#playlist").replaceWith(input);
         loadNextVideo( playlist[0]);
-        related = undefined;
         localStorage.playlist = songArrayToJson(playlist);
     }
     console.log("Playlist length: " + playlist.length);
@@ -169,7 +167,6 @@ function onClientLoad() {
 }
 
 function createBxSlider(){
-    
     var resultSlider= "<div id=\"resultSlider\">{0}";
     for( var i = 0; i < search.length; i++){
         resultSlider = resultSlider.replace("{0}", getResultSlide( i, search[i])) + "{0}";
@@ -291,58 +288,6 @@ function createPlaylistTile( playlistIndex, songObject, played){
     return input;
 }
 
-//---------------------------------------------------------------------
-// Drag and Drop functionality
-//---------------------------------------------------------------------
-//document.addEventListener("dragstart", function(event) {
-//    draggData = event.target.parentElement;
-//    draggData.firstChild.style.backgroundColor = "#ddd";
-//
-//    draggData.index = $(event.target.parentElement).index();
-//    if( event.target.parentElement.parentElement.id === "playlist") {
-//        draggData.played = false;
-//        draggData.song = playlist[draggData.index];
-//    } else {
-//        draggData.played = true;
-//        draggData.song = playedlist[draggData.index];
-//    }
-//});
-//
-//document.addEventListener("dragover", function(event) {
-//    if ( event.target.className == "playlistTile" ) {
-//        if( event.target.parentElement !== draggData) {
-//            event.target.parentElement.parentElement.insertBefore(draggData, event.target.parentElement); 
-//        }
-//    }
-//    draggData.dropIndex = $(event.target.parentElement).index();
-//    console.log("event.target.parentElement....id: " + event.target.parentElement.parentElement.id);
-//    if( event.target.parentElement.parentElement.id === "playlist") {
-//        draggData.dropPlayed = false;
-//    } else {
-//        draggData.dropPlayed = true;
-//    }
-//});
-//
-//document.addEventListener("dragend", function(event) {
-//    console.log("draggData.dropPlayed = " + draggData.dropPlayed);
-//    if(draggData) {
-//        deleteVideoFromList(draggData.index, draggData.played);
-//        draggData.firstChild.style.backgroundColor = "#E3BFA8";
-//        if(draggData.dropPlayed === false) {
-//            console.log("draggData.dropIndex = " + draggData.dropIndex);
-//            playlist.splice( draggData.dropIndex, 0, draggData.song);
-//            console.log(playlist);
-//        } else {
-//            playedlist.splice( draggData.dropIndex, 0, draggData.song);
-//            console.log(playedlist);
-//        }
-//        updatePlaylist();
-//        updatePlayedlist();
-//    }
-//});
-//---------------------------------------------------------------------
-
-
 function loadYoutubePlayerApi(){
     var tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
@@ -351,11 +296,9 @@ function loadYoutubePlayerApi(){
     console.log("Youtube Player Api loaded.");
 }
 
-var youtubePlayer1;
-var youtubePlayer2;
-
 function loadNextVideo( video) {
     if( playing.player === 1) {
+        console.log("Playing player is 1");
         if( youtubePlayer2 === undefined){
             cueYoutubeVideo( video.id, 2);
         } else {
@@ -423,7 +366,6 @@ function processResultClick( searchIndex) {
 }
 
 function forcePlay( playlistIndex, played) {
-    if(related) related = undefined;
     if( playing.player === 1) {
         if(played){
             youtubePlayer1.loadVideoById( playedlist[playlistIndex].id); 
@@ -555,41 +497,27 @@ function cueYoutubeVideo( id, playerNumber) {
     }
 }
 
-// 4. The API will call this function when the video player is ready.
 function onPlayerReady(event) {
     event.target.playVideo();
 }
   
-// 5. The API calls this function when the player's state changes.
-//    The function indicates that when playing a video (state=1),
-//    the player should play for six seconds and then stop.
 function onPlayerStateChange(event) {
     if (event.target.getPlayerState() === 0) {
-        if( playlist.length > 0 || related) {
+        if( playlist.length > 0) {
             playedlist.push(playing);
             updatePlayedlist();
             if( playing.player === 1) {
                 switchToPlayer( 2);
                 youtubePlayer2.playVideo();
-                if( related) {
-                    playing = related;
-                    related = undefined;
-                } else {
-                    playing = playlist[0];
-                    deleteVideoFromList(0, false);
-                }
+                playing = playlist[0];
                 playing.player = 2;
+                deleteVideoFromList(0, false);
             } else {
                 switchToPlayer( 1);
                 youtubePlayer1.playVideo();
-                if( related) {
-                    playing = related;
-                    related = undefined;
-                } else {
-                    playing = playlist[0];
-                    deleteVideoFromList( 0, false);
-                }
+                playing = playlist[0];
                 playing.player = 1;
+                deleteVideoFromList( 0, false);
             }
         }
     }
@@ -648,7 +576,7 @@ window.setInterval(function() {
             if( youtubePlayer1.getPlayerState() === 1){
                 var duration = playing.duration;
                 var playtime = youtubePlayer1.getCurrentTime();
-                if( (playlist.length > 0 || related) && (duration - playtime) <= crossfade && (duration - playtime) >= 1) {
+                if( (playlist.length > 0) && (duration - playtime) <= crossfade && (duration - playtime) >= 1) {
                     fadeTo( 2);
                 }
             }
@@ -657,7 +585,7 @@ window.setInterval(function() {
             if( youtubePlayer2.getPlayerState() === 1){
                 var duration = playing.duration;
                 var playtime = youtubePlayer2.getCurrentTime();
-                if( (playlist.length > 0 || related) && (duration - playtime) <= crossfade && (duration - playtime) >= 1) {
+                if( (playlist.length > 0) && (duration - playtime) <= crossfade && (duration - playtime) >= 1) {
                     fadeTo( 1);
                 }
             }
@@ -679,7 +607,7 @@ function loadRelatedVideo( videoId) {
         var searchResults = searchResponse.result;
         songIteration:
         while( true) {
-            var x = Math.floor(Math.random() * 10);
+            var x = Math.floor(Math.random() * 9);
             var item = searchResults.items[x];
             var currentId = item.id.videoId;
             for( var i = 0; i < playedlist.length; i++){
@@ -702,8 +630,7 @@ function loadRelatedVideo( videoId) {
                 var videoResults = videoResponse.result;
                 songObject.quality = videoResults.items[0].contentDetails.definition;
                 songObject.duration = getVideoDurationSeconds(videoResults.items[0].contentDetails.duration);
-                related = songObject;
-                playlist.push(related);
+                playlist.push(songObject);
                 updatePlaylist();
             });
             break;
