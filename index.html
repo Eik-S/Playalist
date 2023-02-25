@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<title>Play A List Diggie</title>
-<link rel="stylesheet" href="./css/style.css">
-<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900" rel="stylesheet">
-<link rel="icon" href="./favicon.png">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="-1">
-<meta name="description" content="Create easy youtube playlist with crossfade and autoplay. No Account Needed. The perfect tool for any dj-less party or for home use. Just search and listen!">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Play A List Diggie</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900" rel="stylesheet">
+    <link rel="icon" href="./pic/favicon.png">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="-1">
+    <meta name=" description"
+        content="Create easy youtube playlist with crossfade and autoplay. No Account Needed. The perfect tool for any dj-less party or for home use. Just search and listen!">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
+
 <body>
     <div id="background"></div>
     <div id="description">
@@ -21,20 +24,24 @@
         <li> Delete the only song of the playlist to trigger the autoplay algorithm</li>
         <li> Directly play a song by clicking on it in the lists or delete it with X</li>
     </div>
-    <div id="mainFrame"  style="-moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;">
+    <div id="mainFrame"
+        style="-moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;">
         <div id="upperControlsWrapper">
             <div id="donateButton">
                 <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
                     <input type="hidden" name="cmd" value="_s-xclick">
                     <input type="hidden" name="hosted_button_id" value="QL7T8W3MXZ76A">
-                    <input type="image" src="./pic/btn_donate_LG.gif" border="0" name="submit" alt="Jetzt einfach, schnell und sicher online bezahlen – mit PayPal.">
-                    <img alt="" border="0" src="https://www.paypalobjects.com/de_DE/i/scr/pixel.gif" width="1" height="1">
+                    <input type="image" src="./pic/btn_donate_LG.gif" border="0" name="submit"
+                        alt="Jetzt einfach, schnell und sicher online bezahlen – mit PayPal.">
+                    <img alt="" border="0" src="https://www.paypalobjects.com/de_DE/i/scr/pixel.gif" width="1"
+                        height="1">
                 </form>
             </div>
         </div>
         <div id="searchbar">
             <form id="searchForm">
-                <input type="text" role="search "id="search" placeholder="search for music" autocomplete="off" onClick="this.select()"></input>
+                <input type="text" role="search " id="search" placeholder="search for music" autocomplete="off"
+                    onClick="this.select()"></input>
                 <!--<input type="submit" value="Search"></input>-->
             </form>
         </div>
@@ -42,8 +49,8 @@
             <div id="resultPlaceholder"></div>
         </div>
         <div id="playerWrapper">
-                <div id="player1"></div> 
-                <div id="player2"></div> 
+            <div id="player1"></div>
+            <div id="player2"></div>
         </div>
         <div id="controlsWrapper">
             <div id="controls">
@@ -52,10 +59,12 @@
                         <label>crossfade</label>
                         <input type="text" class="crossfadeValue" maxLength="3" readonly value="10s"></input>
                     </div>
-                    <input type="range" value="10" min="0" max="15" step="1" onChange="updateCrossfade(this.value);"></input>
+                    <input type="range" value="10" min="0" max="15" step="1"
+                        onChange="updateCrossfade(this.value);"></input>
                 </div>
                 <div id="buttonWrapper">
-                    <input id="switchFancyButton" type="Button" value="changeBackground" onClick="fancyBgChangeColors();"></input>
+                    <input id="switchFancyButton" type="Button" value="changeBackground"
+                        onClick="fancyBgChangeColors();"></input>
                     <input id="resetButton" type="button" value="resetApp" onClick="deleteLocalStorage()"></input>
                 </div>
             </div>
@@ -71,15 +80,16 @@
             </div>
         </div>
     </div>
-<div id="info" role="contentinfo">
-    <a href="./legal.html">Legal & Contact</a>
-</div>
+    <div id="info" role="contentinfo">
+        <a href="./legal.html">Legal & Contact</a>
+    </div>
 
-<!-- jScripts -->
-<script src="./js/jquery.min.js" type="text/javascript"></script>
-<script src="./js/jquery.mousewheel.min.js" type="text/javascript"></script>
-<script src="./js/fancyBackground.js" type="text/javascript"></script>
-<script src="./js/search.js" type="text/javascript"></script>
-<script src="https://apis.google.com/js/client.js?onload=onClientLoad" type="text/javascript"></script>
-</body>      
+    <!-- jScripts -->
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/jquery.mousewheel.min.js"></script>
+    <script src="./js/fancyBackground.js"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script type="module" src="./js/search.js"></script>
+</body>
+
 </html>

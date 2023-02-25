@@ -32,7 +32,7 @@ body {
 #description h2 {
     margin: 10px 20px 0px 20px;
     padding: 0px;
-    font-weight: 700px;
+    font-weight: 700;
     font-size: 20px;
 }
 
@@ -40,7 +40,7 @@ body {
     display: block;
     margin: 3px 20px 10px 20px;
     text-align: center;
-    font-weight: 600px;
+    font-weight: 600;
     font-size: 16px;
 }
 
@@ -352,7 +352,7 @@ label.headerLabel {
     background-color: #444;
     color: #ccc;
     font-weight: 600;
-    font-size: 22;
+    font-size: 22px;
     text-align: center;
     padding: 10px 0px;
 }

@@ -1,4 +1,5 @@
-'use strict';https://gist.github.com/simonista/8703722
+import { CLIENT_API_KEY } from "./env.js";
+
 var currentVideoId;
 var currentPlatform;
 var currentThumbnail;
@@ -30,6 +31,21 @@ function Song(platform, id, name, thumbnail, quality, duration) {
     this.player;
 }
 
+// Called when Client API is loaded.
+function onClientLoad() {
+    gapi.client.setApiKey(CLIENT_API_KEY);
+    console.log("Google client ready.");
+    loadYoutubePlayerApi();
+}
+
+function loadYoutubePlayerApi() {
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    console.log("Youtube Player Api loaded.");
+}
+
 $(function() {
     $("#searchForm").on("submit", function(e) {
         $("#searchForm").blur();
@@ -37,31 +53,36 @@ $(function() {
         // prepare the request
         var searchQuery = encodeURIComponent($("#search").val().trim()).replace(/%20/g, "+");
         searchQuery = searchQuery.replace("%C3%A4","ae").replace("%C3%BC", "ue").replace("%C3%B6","oe");
-        var searchRequest = gapi.client.youtube.search.list({
-            part: "snippet",
-            type: "video",
-            safeSearch: "none",
-            q: searchQuery,
-            maxResults: 10,
-            order: "relevance"
+        var searchRequest = gapi.client.request({
+            path: "https://www.googleapis.com/youtube/v3/search",
+            params: {
+                part: "snippet",
+                type: "video",
+                safeSearch: "none",
+                q: searchQuery,
+                maxResults: 10,
+                order: "relevance"
+            }
         });
+
         //execute the request
-        searchRequest.execute(function(searchResponse) {
-            var searchResults = searchResponse.result;
-            var i = 0; //Own Index to have no problems with unsynchronous execution of the loop
+        searchRequest.execute(searchResults => {
+            var i = 0; //Own Index to have no problems with asynchronous execution of the loop
             $.each(searchResults.items, function(index, item) {
                 var songObject = new Song;
                 songObject.id = item.id.videoId;
                 songObject.platform = "youtube";
                 songObject.name = item.snippet.title;
                 songObject.thumbnail = item.snippet.thumbnails.high.url;
-                var videoRequest = gapi.client.youtube.videos.list({
-                    part: "contentDetails",
-                    id: songObject.id
-                });
 
-                videoRequest.execute(function(videoResponse) {
-                    var videoResults = videoResponse.result;
+                gapi.client.request({
+                    path: "https://www.googleapis.com/youtube/v3/videos",
+                    params: {
+                        part: "contentDetails",
+                        id: songObject.id
+                    }
+                }).then(response => {
+                    const videoResults = response.result
                     songObject.quality = videoResults.items[0].contentDetails.definition;
                     songObject.duration = getVideoDurationSeconds(videoResults.items[0].contentDetails.duration);
                     search[index] = songObject;
@@ -71,7 +92,9 @@ $(function() {
                     }
                 });
             });
-        });
+        }, (error) => {
+            console.log(error)
+        })
     }); 
 });
 
@@ -107,8 +130,9 @@ function onYouTubeIframeAPIReady() {
         }
     }
 }
+window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady
 
-function deleteLocalStorage() {
+window.deleteLocalStorage = function () {
     localStorage.removeItem("playing");
     localStorage.removeItem("playlist");
     localStorage.removeItem("playedlist");
@@ -154,16 +178,6 @@ function updatePlayedlist() {
         localStorage.playedlist = songArrayToJson(playedlist);
     }
     console.log("Playedlist length: " + playedlist.length);
-}
-
-// Called when Client API is loaded.
-function onClientLoad() {
-    console.log("Google client api ready.");
-    gapi.client.setApiKey('AIzaSyA0Uet82u6oOXIyIiAvdaRXJvas7i16NkA');
-    gapi.client.load('youtube', 'v3', function() {
-        loadYoutubePlayerApi();
-    });
-
 }
 
 function createBxSlider(){
@@ -288,14 +302,6 @@ function createPlaylistTile( playlistIndex, songObject, played){
     return input;
 }
 
-function loadYoutubePlayerApi(){
-    var tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    var firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-    console.log("Youtube Player Api loaded.");
-}
-
 function loadNextVideo( video) {
     if( playing.player === 1) {
         console.log("Playing player is 1");
@@ -331,7 +337,7 @@ function switchToPlayer( playerId) {
     }
 }
 
-function processResultClick( searchIndex) {
+window.processResultClick = function ( searchIndex) {
     $("#resultSlider").replaceWith("<div id=\"resultPlaceholder\"></div>");
     if( playing){
         if(playing.player === 1){
@@ -365,7 +371,7 @@ function processResultClick( searchIndex) {
     }
 }
 
-function forcePlay( playlistIndex, played) {
+window.forcePlay = function ( playlistIndex, played) {
     if( playing.player === 1) {
         if(played){
             youtubePlayer1.loadVideoById( playedlist[playlistIndex].id); 
@@ -420,9 +426,9 @@ function deleteVideoFromList( index, played) {
             playlist.splice(index, 1);
         }
         updatePlaylist(); 
-    }
-    
+    }   
 }
+window.deleteVideoFromList = deleteVideoFromList
 
 function playYoutubeVideo( id, playerNumber) {
     console.log("## Player" + playerNumber + ": ## Youtube Api Ready.");
@@ -523,7 +529,7 @@ function onPlayerStateChange(event) {
     }
 }
 
-function updateCrossfade( seconds) {
+window.updateCrossfade = function ( seconds) {
     crossfade = Number(seconds) + (Number(seconds) * 0.1);
     $("#crossfadeWrapper .crossfadeValue").val(String(seconds) + "s");
 }
@@ -572,7 +578,7 @@ function endFadeTo( timerId){
 //Crossfade Listener
 window.setInterval(function() {
     if(crossfade > 0 && !fading){
-        if(youtubePlayer1){
+        if(youtubePlayer1 && youtubePlayer1.getPlayerState){
             if( youtubePlayer1.getPlayerState() === 1){
                 var duration = playing.duration;
                 var playtime = youtubePlayer1.getCurrentTime();
@@ -581,7 +587,7 @@ window.setInterval(function() {
                 }
             }
         }
-        if( youtubePlayer2){
+        if( youtubePlayer2 && youtubePlayer2.getPlayerState){
             if( youtubePlayer2.getPlayerState() === 1){
                 var duration = playing.duration;
                 var playtime = youtubePlayer2.getCurrentTime();
@@ -594,17 +600,19 @@ window.setInterval(function() {
 }, 1000);
 
 function loadRelatedVideo( videoId) {
-    var searchRequest = gapi.client.youtube.search.list({
-        part: "snippet",
-        type: "video",
-        safeSearch: "none",
-        maxResults: 10,
-        relatedToVideoId: videoId
-    });
+    var searchRequest = gapi.client.request({
+            path: "https://www.googleapis.com/youtube/v3/search",
+            params: {
+                part: "snippet",
+                type: "video",
+                safeSearch: "none",
+                maxResults: 10,
+                relatedToVideoId: videoId
+            }
+        });
 
     //execute the request
-    searchRequest.execute(function(searchResponse) {
-        var searchResults = searchResponse.result;
+    searchRequest.execute(function(searchResults) {
         songIteration:
         while( true) {
             var x = Math.floor(Math.random() * 9);
@@ -621,13 +629,14 @@ function loadRelatedVideo( videoId) {
             songObject.platform = "youtube";
             songObject.name = item.snippet.title;
             songObject.thumbnail = item.snippet.thumbnails.high.url;
-            var videoRequest = gapi.client.youtube.videos.list({
-                part: "contentDetails",
-                id: songObject.id
-            });
-
-            videoRequest.execute(function(videoResponse) {
-                var videoResults = videoResponse.result;
+            gapi.client.request({
+                path: "https://www.googleapis.com/youtube/v3/videos",
+                params: {
+                    part: "contentDetails",
+                    id: songObject.id
+                }
+            }).then(response => {
+                var videoResults = response.result;
                 songObject.quality = videoResults.items[0].contentDetails.definition;
                 songObject.duration = getVideoDurationSeconds(videoResults.items[0].contentDetails.duration);
                 playlist.push(songObject);
@@ -676,3 +685,5 @@ function setMousewheel() {
          event.preventDefault();
     });
 }
+
+gapi.load('client', onClientLoad);

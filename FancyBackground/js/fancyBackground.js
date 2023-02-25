@@ -18,7 +18,7 @@ function setFancyBg( thisDetail, thisIntensity){
             html += "<div class=\"" + x + "x" + y + "\" style=\"height: 100px; width: 100px; position: absolute; opacity: " + intensity + "; left: " + x + "px; top: " + y + "px; background-color: #000; transition: background-color 5s linear;\"></div>"
         }
     }
-    $("#background").replaceWith("<div id=\"background\" style=\"height: "+ vpHeight+ "px; width: "+ vpWidth + "px; overflow: hidden; zIndex: -1; background-color: #000;\">" + html + "</div>");
+    $("#background").replaceWith("<div id=\"background\" style=\"height: "+ vpHeight+ "px; width: "+ vpWidth + "px; overflow: hidden; z-index: -1; background-color: #000;\">" + html + "</div>");
     active = true;
 }
 

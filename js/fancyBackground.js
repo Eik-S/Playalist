@@ -19,7 +19,7 @@ function setFancyBg( thisDetail, thisIntensity){
             html += "<div class=\"" + x + "x" + y + "\" style=\"height: " + fancyBgDetail + "px; width: " + fancyBgDetail + "px; position: absolute; opacity: " + fancyBgIntensity + "; z-index: -1; left: " + x + "px; top: " + y + "px; background-color: #000; transition: background-color 2s linear;\"></div>"
         }
     }
-    $("#background").replaceWith("<div id=\"background\" style=\"height: "+ fancyBgVpHeight+ "px; width: "+ fancyBgVpWidth + "px; position: fixed; overflow: hidden; zIndex: -1; background-color: #000; top: 0px; left: 0;\">" + html + "</div>");
+    $("#background").replaceWith("<div id=\"background\" style=\"height: "+ fancyBgVpHeight+ "px; width: "+ fancyBgVpWidth + "px; position: fixed; overflow: hidden; z-index: -1; background-color: #000; top: 0px; left: 0;\">" + html + "</div>");
     fancyBgChangeColors();
 }
 
